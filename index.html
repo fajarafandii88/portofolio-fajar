@@ -734,36 +734,21 @@ nav b,nav a{text-shadow:0 1px 8px rgba(0,0,0,.65)}nav a{color:#d0d0d0}
 <script>
 var $=function(s){return document.querySelector(s)};
 /* gambar: coba versi ringan, lalu asli, lalu kartu pengganti */
-function card(d,l){d.innerHTML='<div class="pdfc"><div><b>'+l+'</b><span>Klik untuk membuka</span></div></div>'}
-/* gambar: coba versi ringan, lalu asli, lalu cadangan (callback / kartu / iframe) */
-function pic(src,alt,fb,label,orig,onfail){var d=document.createElement("div");d.className="im";var i=new Image();i.alt=alt||"";i.loading="lazy";i.decoding="async";
+/* gambar dengan cadangan: jika versi ringan gagal, coba gambar asli; jika masih gagal, kartu pengganti */
+function pic(src,alt,fb,label,orig){var d=document.createElement("div");d.className="im";var i=new Image();i.alt=alt||"";i.loading="lazy";i.decoding="async";
 i.onload=function(){i.classList.add("ok")};
 i.onerror=function(){if(orig&&!d.dataset.r){d.dataset.r=1;i.src=orig;return}if(d.dataset.f)return;d.dataset.f=1;i.remove();
-if(onfail){onfail(d);return}
 if(fb==="iframe"){var f=document.createElement("iframe");f.src=orig||src;f.title=alt||"";d.appendChild(f)}
-else if(fb==="card"){card(d,label||"Berkas")}};
+else if(fb==="card"){d.insertAdjacentHTML("beforeend",'<div class="pdfc"><div><b>'+(label||"Berkas")+'</b><span>Klik untuk membuka</span></div></div>')}};
 i.src=src;d.appendChild(i);return d}
-/* cover PDF: render halaman 1 dengan pdf.js jika ImageKit tidak memberi gambar */
-var PJ=null;
-function loadPJ(cb){if(window.pdfjsLib)return cb(window.pdfjsLib);if(PJ){PJ.push(cb);return}PJ=[cb];var sc=document.createElement("script");sc.src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js";
-sc.onload=function(){window.pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";var q=PJ;PJ=null;q.forEach(function(f){f(window.pdfjsLib)})};
-sc.onerror=function(){var q=PJ;PJ=null;q.forEach(function(f){f(null)})};document.head.appendChild(sc)}
-function pdfThumb(d,it){loadPJ(function(L){if(!L){card(d,"PDF");return}
-L.getDocument({url:it.u}).promise.then(function(pdf){return pdf.getPage(1)}).then(function(pg){var w=pg.getViewport({scale:1}).width,vp=pg.getViewport({scale:700/w});var cv=document.createElement("canvas");cv.width=vp.width;cv.height=vp.height;var cx=cv.getContext("2d");cx.fillStyle="#fff";cx.fillRect(0,0,cv.width,cv.height);
-return pg.render({canvasContext:cx,viewport:vp}).promise.then(function(){d.innerHTML="";d.appendChild(cv)})}).catch(function(){card(d,"PDF")})})}
-/* cover video mp4: thumbnail ImageKit, cadangan frame pertama video */
-function vposter(it){var u=it.u.split("?"),q=u[1]?"?"+u[1]:"";
-return pic(u[0]+"/ik-thumbnail.jpg"+q,it.t,"none","",null,function(d){var v=document.createElement("video");v.muted=true;v.defaultMuted=true;v.playsInline=true;v.preload="metadata";v.src=it.u+"#t=1";d.appendChild(v)})}
-function thumb(it){var sep=it.u&&it.u.indexOf("?")<0?"?":"&";
-if(it.c)return pic(it.c,it.t,"card","Cover");
-if(it.yt)return pic("https://img.youtube.com/vi/"+it.yt+"/maxresdefault.jpg",it.t,"card","Video","https://img.youtube.com/vi/"+it.yt+"/hqdefault.jpg",null);
-if(it.vid)return vposter(it);
-if(it.pdf)return pic(it.u+sep+"tr=pg-1,f-jpg,w-600",it.t,"card","PDF",null,function(d){pdfThumb(d,it)});
+function thumb(it){var d,sep=it.u&&it.u.indexOf("?")<0?"?":"&";
+if(it.vid){var v=document.createElement("video");v.muted=true;v.defaultMuted=true;v.playsInline=true;v.preload="metadata";v.src=it.u+"#t=0.5";d=document.createElement("div");d.className="im";d.appendChild(v);return d}
+if(it.yt)return pic("https://img.youtube.com/vi/"+it.yt+"/hqdefault.jpg",it.t,"card","Video");
+if(it.pdf)return pic(it.u+sep+"tr=pg-1,f-jpg,w-600",it.t,"card","PDF");
 return pic(it.u+sep+"tr=w-700",it.t,"card","Gambar",it.u)}
 function tile(it,kind){var t=document.createElement("div");t.className="t";t.appendChild(thumb(it));
 var ov=document.createElement("div");ov.className="ov";ov.style.cssText="position:absolute;inset:0;cursor:pointer";t.appendChild(ov);
-var isv=it.vid||it.yt,bl=it.yt?"YouTube":it.vid?"VIDEO":it.pdf?"PDF":"";if(bl)t.insertAdjacentHTML("beforeend",'<span class="bd">'+bl+'</span>');
-if(isv)t.insertAdjacentHTML("beforeend",'<div class="play"><span>▶</span></div>');
+var isv=it.vid||it.yt;if(isv)t.insertAdjacentHTML("beforeend",'<div class="play"><span>▶</span></div>');
 tip(t,it.t,isv?"Klik, lalu pilih putar atau tidak ▶":it.pdf?"Klik untuk membuka PDF 📄":"Klik untuk memperbesar 🔍");t.onclick=function(){open_(it)};return t}
 function grid(items,kind){var g=document.createElement("div");g.className="g "+(kind==="doc"?"doc":kind==="vid"?"vid":"");items.forEach(function(it,ix){var w=document.createElement("div");w.className="rv";w.style.setProperty("--dl",(ix%6)*70+"ms");w.appendChild(tile(it,kind));if(kind!=="img"){var c=document.createElement("div");c.className="cap";c.textContent=it.t;w.appendChild(c)}g.appendChild(w)});return g}
 /* modal */
@@ -771,10 +756,12 @@ var md=$("#md"),mv=$("#mv");
 function open_(it){mv.innerHTML="";mv.className="mv";$("#mtt").textContent=it.t||"";
 $("#mo").href=it.yt?"https://www.youtube.com/watch?v="+it.yt:it.u;
 if(it.vid||it.yt){mv.classList.add("vd");
-if(it.vid){mv.appendChild(vposter(it))}else mv.appendChild(pic("https://img.youtube.com/vi/"+it.yt+"/maxresdefault.jpg",it.t,"none","","https://img.youtube.com/vi/"+it.yt+"/hqdefault.jpg"));
+if(it.vid){var pv=document.createElement("video");pv.muted=true;pv.defaultMuted=true;pv.playsInline=true;pv.preload="metadata";pv.src=it.u+"#t=0.5";mv.appendChild(pv)}else mv.appendChild(pic("https://img.youtube.com/vi/"+it.yt+"/maxresdefault.jpg",it.t,"none","",null));
 var c=document.createElement("div");c.className="ch";c.innerHTML='<button class="btn" id="pl">▶ Putar di sini</button><button class="btn o" id="no" style="color:#fff;border-color:#fff">Tidak, tutup</button>';mv.appendChild(c);
 $("#pl").onclick=function(){mv.innerHTML="";mv.classList.remove("vd");
-if(it.vid){var v=document.createElement("video");v.controls=true;v.autoplay=true;v.playsInline=true;v.src=it.u;mv.appendChild(v)}
+if(it.vid){var v=document.createElement("video");v.controls=true;v.autoplay=true;v.playsInline=true;v.setAttribute("playsinline","");v.preload="auto";v.src=it.u;
+var er=document.createElement("div");er.className="ch";er.style.cssText="position:absolute;left:0;right:0;bottom:16px;z-index:5;color:#fff;text-align:center;display:none;flex-direction:column;align-items:center;gap:8px";er.innerHTML='<span>Video tidak bisa diputar di sini.</span><a class="btn" target="_blank" rel="noopener">Buka di tab baru ↗</a>';er.querySelector("a").href=it.u;
+v.onerror=function(){er.style.display="flex"};mv.appendChild(v);mv.appendChild(er);var pr=v.play();if(pr&&pr.catch)pr.catch(function(){})}
 else{var f=document.createElement("iframe");f.allow="autoplay; fullscreen; picture-in-picture";f.allowFullscreen=true;f.src="https://www.youtube.com/embed/"+it.yt+"?autoplay=1&rel=0";mv.appendChild(f)}};
 $("#no").onclick=close_}
 else if(it.pdf){var f=document.createElement("iframe");f.src=it.u;f.title=it.t;mv.appendChild(f)}
