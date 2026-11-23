@@ -742,6 +742,7 @@ if(fb==="iframe"){var f=document.createElement("iframe");f.src=orig||src;f.title
 else if(fb==="card"){d.insertAdjacentHTML("beforeend",'<div class="pdfc"><div><b>'+(label||"Berkas")+'</b><span>Klik untuk membuka</span></div></div>')}};
 i.src=src;d.appendChild(i);return d}
 function thumb(it){var d,sep=it.u&&it.u.indexOf("?")<0?"?":"&";
+if(it.dr)return pic("https://drive.google.com/thumbnail?id="+it.dr+"&sz=w600",it.t,"card","Video");
 if(it.vid){var v=document.createElement("video");v.muted=true;v.defaultMuted=true;v.playsInline=true;v.preload="metadata";v.src=it.u+"#t=0.5";d=document.createElement("div");d.className="im";d.appendChild(v);return d}
 if(it.yt)return pic("https://img.youtube.com/vi/"+it.yt+"/hqdefault.jpg",it.t,"card","Video");
 if(it.pdf)return pic(it.u+sep+"tr=pg-1,f-jpg,w-600",it.t,"card","PDF");
@@ -754,12 +755,12 @@ function grid(items,kind){var g=document.createElement("div");g.className="g "+(
 /* modal */
 var md=$("#md"),mv=$("#mv");
 function open_(it){mv.innerHTML="";mv.className="mv";$("#mtt").textContent=it.t||"";
-$("#mo").href=it.yt?"https://www.youtube.com/watch?v="+it.yt:it.u;
+$("#mo").href=it.yt?"https://www.youtube.com/watch?v="+it.yt:it.dr?"https://drive.google.com/file/d/"+it.dr+"/view":it.u;
 if(it.vid||it.yt){mv.classList.add("vd");
-if(it.vid){var pv=document.createElement("video");pv.muted=true;pv.defaultMuted=true;pv.playsInline=true;pv.preload="metadata";pv.src=it.u+"#t=0.5";mv.appendChild(pv)}else mv.appendChild(pic("https://img.youtube.com/vi/"+it.yt+"/maxresdefault.jpg",it.t,"none","",null));
+if(it.dr){mv.appendChild(pic("https://drive.google.com/thumbnail?id="+it.dr+"&sz=w1200",it.t,"none","",null))}else if(it.vid){var pv=document.createElement("video");pv.muted=true;pv.defaultMuted=true;pv.playsInline=true;pv.preload="metadata";pv.src=it.u+"#t=0.5";mv.appendChild(pv)}else mv.appendChild(pic("https://img.youtube.com/vi/"+it.yt+"/maxresdefault.jpg",it.t,"none","",null));
 var c=document.createElement("div");c.className="ch";c.innerHTML='<button class="btn" id="pl">▶ Putar di sini</button><button class="btn o" id="no" style="color:#fff;border-color:#fff">Tidak, tutup</button>';mv.appendChild(c);
 $("#pl").onclick=function(){mv.innerHTML="";mv.classList.remove("vd");
-if(it.vid){var v=document.createElement("video");v.controls=true;v.autoplay=true;v.playsInline=true;v.setAttribute("playsinline","");v.preload="auto";v.src=it.u;
+if(it.dr){var f0=document.createElement("iframe");f0.allow="autoplay; fullscreen";f0.allowFullscreen=true;f0.src="https://drive.google.com/file/d/"+it.dr+"/preview";mv.appendChild(f0)}else if(it.vid){var v=document.createElement("video");v.controls=true;v.autoplay=true;v.playsInline=true;v.setAttribute("playsinline","");v.preload="auto";v.src=it.u;
 var er=document.createElement("div");er.className="ch";er.style.cssText="position:absolute;left:0;right:0;bottom:16px;z-index:5;color:#fff;text-align:center;display:none;flex-direction:column;align-items:center;gap:8px";er.innerHTML='<span>Video tidak bisa diputar di sini.</span><a class="btn" target="_blank" rel="noopener">Buka di tab baru ↗</a>';er.querySelector("a").href=it.u;
 v.onerror=function(){er.style.display="flex"};mv.appendChild(v);mv.appendChild(er);var pr=v.play();if(pr&&pr.catch)pr.catch(function(){})}
 else{var f=document.createElement("iframe");f.allow="autoplay; fullscreen; picture-in-picture";f.allowFullscreen=true;f.src="https://www.youtube.com/embed/"+it.yt+"?autoplay=1&rel=0";mv.appendChild(f)}};
@@ -773,7 +774,7 @@ $("#mx").onclick=close_;md.onclick=function(e){if(e.target===md)close_()};docume
 /* data (semua file dari ImageKit) */
 var IK="https://ik.imagekit.io/fajarafandi/Asset-Web/";
 function U(p,v){return IK+encodeURI(p)+(v?"?updatedAt="+v:"")}
-function I(p,v,t){return{u:U(p,v),t:t}}function P(p,v,t){return{u:U(p,v),t:t,pdf:1}}function M(p,v,t){return{u:U(p,v),t:t,vid:1}}
+function I(p,v,t){return{u:U(p,v),t:t}}function P(p,v,t){return{u:U(p,v),t:t,pdf:1}}function M(p,v,t){return{u:U(p,v),t:t,vid:1}}function D(id,t){return{dr:id,t:t,vid:1}}
 var FI="Foto dan Icon/",SD="Sertifikat dan Dokumen/",BH="Magang BumiHomey/",RS="RSUD Karawang/",FE="Film Semi Dokumenter Eunoia Sasmita/";
 var ME={p1:U(FI+"Foto-Fajar-1","1795163476483"),p2:U(FI+"Foto-Fajar-2","1795163506579"),p3:U(FI+"Foto-Fajar-3","1795163548691"),p5:U(FI+"Foto-Fajar-4","1795163565193")};ME.p4=ME.p1;
 ["p1","p2","p3","p4"].forEach(function(k){$("#"+k).appendChild(pic(ME[k],"Foto Fajar","none","",null))});
@@ -782,7 +783,7 @@ var TOOLS=[["Canva", "#fff", "<svg viewBox=\"0 0 128 128\" xmlns=\"http://www.w3
 
 var EXP=[
 {n:"Social Media Creative – Internship",r:"BUMIHOMEY REAL ESTATE",s:"Agu. 2025 – Okt. 2025",p:["Mengambil foto dan video properti, serta memproduksi 20+ desain poster dan 5+ video promosi untuk Instagram, Facebook, Threads, dan TikTok Bumihomey dalam 3 bulan.","Menyusun kalender konten mingguan dengan 5 tema (Branding, Market Demand, Dehomey, Product Info, Hard Selling) serta menulis copywriting untuk setiap postingan.","Berkolaborasi dengan tim kreatif agar visual selaras dengan identitas brand."],
- m:[["Desain Poster Properti Bumi Azzure Project (The Freesia, The Viola, The Iris, The Clover)","doc",[P(BH+"brosur bumihomey.pdf","1795164293890","Brosur Bumi Azzure")]],["Hasil Akhir Proyek (Video)","vid",[M(BH+"TheViola-1","1795165010927","The Viola 1"),M(BH+"TheViola-2","1795164878408","The Viola 2"),M(BH+"TheViola-3","1795164857407","The Viola 3"),M(BH+"TheFressia-1","1795164367848","The Freesia 1"),M(BH+"TheFressia-2","1795164387781","The Freesia 2")]]]},
+ m:[["Desain Poster Properti Bumi Azzure Project (The Freesia, The Viola, The Iris, The Clover)","doc",[P(BH+"brosur bumihomey.pdf","1795164293890","Brosur Bumi Azzure")]],["Hasil Akhir Proyek (Video)","vid",[D("1PSUT1WdndYyCdglrbG2P_06TyCL4CDg4","The Viola 1"),D("1LwNplz0i0jw4k6V4aXxVwhwvmj6bK1uS","The Viola 2"),D("1BZrqINGu5LHVCbsv-S1GQtd5zHLk-fdV","The Viola 3"),D("10xiMIpCGWR900TG5jnHhXCjImD9tSx8D","The Freesia 1"),D("1crzgpNk-e58MZxFhA3FXJIMOjudDU1Z_","The Freesia 2")]]]},
 {n:"Director of Photography, Cameraman & Scriptwriter",r:"FILM SEMI DOKUMENTER “EUNOIA SASMITA”",s:"Tugas Akhir D3 Hubungan Masyarakat AKMRTV Jakarta | 2025",p:["Menulis naskah dan merancang alur cerita yang mengangkat kisah serta filosofi seni tari Jawa.","Menyusun dan mengarahkan konsep visual sebagai Director of Photography, termasuk mengatur pencahayaan dan estetika gambar.","Film berdurasi 24 menit dan ditayangkan di UGTV dan YouTube."],
  cr:"Credit: Directed by Agnia Prianka · Produced by Mafaza Nurina Putri · Written by Friskila Hutagalung & Fajar Setia Afandi · Art Director Fajar Setia Afandi · Cinematography Muhammad Ziyan Aqila & Fajar Setia Afandi · Edited by Reksyalyan Yanuar",
  m:[["Poster Film “Eunoia Sasmita – Sang Pamomong Gerak”","img",[I(FE+"Poster-Film-Landscape","1795165942411","Poster Film (Landscape)"),I(FE+"Poster-Film-Potrait","1795165963077","Poster Film (Portrait)"),I(FE+"DVD-Cover-Film","1795166065855","Cover DVD Film")]],["Hasil Akhir Proyek (Film)","vid",[{yt:"BVdjcYbZrvA",t:"Film Eunoia Sasmita"}]],["Dokumentasi Pembuatan Film","img",[1,2,3,4].map(function(n){return I(FE+"Dokumentasi-Film"+n,["1795165987279","1795166004852","1795166022333","1795166038020"][n-1],"Dokumentasi Film "+n)})]]},
